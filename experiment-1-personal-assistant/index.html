@@ -148,6 +148,18 @@
     </div>
 
     <script>
+        // Use localStorage for notes storage (client-side)
+        const NOTES_KEY = 'mcp_notes';
+        
+        function loadNotes() {
+            const stored = localStorage.getItem(NOTES_KEY);
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        function saveNotesToStorage(notes) {
+            localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+        }
+        
         function showMessage(text, type = 'success') {
             const msg = document.getElementById('message');
             msg.textContent = text;
@@ -167,27 +179,30 @@
             const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()) : [];
             
             try {
-                const response = await fetch('/api/experiment-1/save_note', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content, tags })
-                });
+                const notes = loadNotes();
+                const noteId = notes.length > 0 ? Math.max(...notes.map(n => n.id)) + 1 : 1;
                 
-                const data = await response.json();
+                const newNote = {
+                    id: noteId,
+                    content: content,
+                    tags: tags,
+                    timestamp: new Date().toISOString()
+                };
                 
-                if (data.success) {
-                    showMessage('✓ Note saved successfully!');
-                    document.getElementById('content').value = '';
-                    document.getElementById('tags').value = '';
-                    loadAllNotes();
-                }
+                notes.push(newNote);
+                saveNotesToStorage(notes);
+                
+                showMessage('✓ Note saved successfully!');
+                document.getElementById('content').value = '';
+                document.getElementById('tags').value = '';
+                loadAllNotes();
             } catch (error) {
                 showMessage('Error saving note', 'error');
             }
         }
 
         async function searchNotes() {
-            const query = document.getElementById('search').value.trim();
+            const query = document.getElementById('search').value.trim().toLowerCase();
             
             if (!query) {
                 showMessage('Please enter a search query', 'error');
@@ -195,9 +210,12 @@
             }
             
             try {
-                const response = await fetch(`/api/experiment-1/search_notes?query=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                displayNotes(data.notes);
+                const notes = loadNotes();
+                const matching = notes.filter(note => 
+                    note.content.toLowerCase().includes(query) ||
+                    note.tags.some(tag => tag.toLowerCase().includes(query))
+                );
+                displayNotes(matching);
             } catch (error) {
                 showMessage('Error searching notes', 'error');
             }
@@ -205,9 +223,8 @@
 
         async function loadAllNotes() {
             try {
-                const response = await fetch('/api/experiment-1/search_notes?query=');
-                const data = await response.json();
-                displayNotes(data.notes);
+                const notes = loadNotes();
+                displayNotes(notes);
             } catch (error) {
                 showMessage('Error loading notes', 'error');
             }
@@ -220,6 +237,9 @@
                 container.innerHTML = '<div class="empty-state">No notes found</div>';
                 return;
             }
+            
+            // Sort by most recent first
+            notes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
             container.innerHTML = notes.map(note => `
                 <div class="note-item">
