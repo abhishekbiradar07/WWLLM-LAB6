@@ -1,0 +1,21 @@
+[
+  {
+    "id": 1,
+    "content": "Python MCP experiment deadline is October 1",
+    "tags": [
+      "deadline",
+      "python",
+      "mcp"
+    ],
+    "timestamp": "2026-09-24T23:46:53.079734"
+  },
+  {
+    "id": 2,
+    "content": "Team meeting scheduled for September 28 at 3pm",
+    "tags": [
+      "meeting",
+      "team"
+    ],
+    "timestamp": "2026-09-24T23:46:53.088303"
+  }
+]
