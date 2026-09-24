@@ -40,3 +40,10 @@ Thumbs.db
 # Project specific
 experiment-1-personal-assistant/notes.json
 *.log
+
+# Keep test scripts
+!test_experiment1.py
+!test_experiment2.py
+
+# Test files
+test_*.py
