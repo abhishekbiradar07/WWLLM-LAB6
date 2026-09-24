@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Assistant - MCP Experiment 1</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        h1 { font-size: 28px; margin-bottom: 10px; }
+        .subtitle { opacity: 0.9; font-size: 14px; }
+        .main { padding: 30px; }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 10px;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+        .notes-list {
+            margin-top: 30px;
+        }
+        .note-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .note-content { margin-bottom: 10px; color: #333; }
+        .note-meta {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .note-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .message.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 Personal Assistant Memory</h1>
+            <p class="subtitle">MCP Experiment 1 - Save and search your notes</p>
+        </header>
+        
+        <div class="main">
+            <div id="message" class="message"></div>
+            
+            <div class="input-group">
+                <label for="content">Note Content</label>
+                <textarea id="content" placeholder="Enter your note here..."></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label for="tags">Tags (comma separated)</label>
+                <input type="text" id="tags" placeholder="e.g., work, deadline, meeting">
+            </div>
+            
+            <button onclick="saveNote()">💾 Save Note</button>
+            
+            <div class="input-group" style="margin-top: 40px;">
+                <label for="search">Search Notes</label>
+                <input type="text" id="search" placeholder="Search by content or tags...">
+            </div>
+            
+            <button onclick="searchNotes()">🔍 Search</button>
+            <button onclick="loadAllNotes()" style="background: #6c757d;">📋 Show All</button>
+            
+            <div class="notes-list">
+                <div id="notes-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showMessage(text, type = 'success') {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = `message ${type} show`;
+            setTimeout(() => msg.classList.remove('show'), 3000);
+        }
+
+        async function saveNote() {
+            const content = document.getElementById('content').value.trim();
+            const tagsInput = document.getElementById('tags').value.trim();
+            
+            if (!content) {
+                showMessage('Please enter note content', 'error');
+                return;
+            }
+            
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()) : [];
+            
+            try {
+                const response = await fetch('/api/experiment-1/save_note', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, tags })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('✓ Note saved successfully!');
+                    document.getElementById('content').value = '';
+                    document.getElementById('tags').value = '';
+                    loadAllNotes();
+                }
+            } catch (error) {
+                showMessage('Error saving note', 'error');
+            }
+        }
+
+        async function searchNotes() {
+            const query = document.getElementById('search').value.trim();
+            
+            if (!query) {
+                showMessage('Please enter a search query', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/experiment-1/search_notes?query=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                displayNotes(data.notes);
+            } catch (error) {
+                showMessage('Error searching notes', 'error');
+            }
+        }
+
+        async function loadAllNotes() {
+            try {
+                const response = await fetch('/api/experiment-1/search_notes?query=');
+                const data = await response.json();
+                displayNotes(data.notes);
+            } catch (error) {
+                showMessage('Error loading notes', 'error');
+            }
+        }
+
+        function displayNotes(notes) {
+            const container = document.getElementById('notes-container');
+            
+            if (!notes || notes.length === 0) {
+                container.innerHTML = '<div class="empty-state">No notes found</div>';
+                return;
+            }
+            
+            container.innerHTML = notes.map(note => `
+                <div class="note-item">
+                    <div class="note-content">${note.content}</div>
+                    <div class="note-meta">
+                        <div class="note-tags">
+                            ${note.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <span>${new Date(note.timestamp).toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load notes on page load
+        loadAllNotes();
+    </script>
+</body>
+</html>

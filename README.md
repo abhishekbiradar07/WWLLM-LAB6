@@ -1,6 +1,8 @@
 # MCP Experiments - Personal Assistant & Data Dashboard
 
-Two beginner-friendly experiments demonstrating the **Model Context Protocol (MCP)** for building AI-powered tools with structured communication between language models and external systems.
+Two production-ready experiments demonstrating the **Model Context Protocol (MCP)** with both CLI and web interfaces.
+
+🔗 **[Live Demo](https://your-app.vercel.app)**
 
 ## What is MCP?
 
@@ -72,30 +74,72 @@ graph TB
 MCP-Experiments/
 │
 ├── experiment-1-personal-assistant/
-│   ├── server.py           # MCP server with note tools
-│   ├── client.py           # Interactive client
-│   ├── notes.json          # Note storage (auto-generated)
-│   ├── requirements.txt
-│   └── README.md
+│   ├── api/                # Vercel serverless functions
+│   │   ├── save_note.py
+│   │   └── search_notes.py
+│   ├── server.py           # MCP server (CLI mode)
+│   ├── client.py           # CLI client
+│   ├── index.html          # Web UI
+│   ├── notes.json          # Note storage
+│   └── requirements.txt
 │
 ├── experiment-2-data-dashboard/
-│   ├── server.py           # MCP server with weather tool
-│   ├── client.py           # Interactive client with visible flow
-│   ├── requirements.txt
-│   └── README.md
+│   ├── api/                # Vercel serverless functions
+│   │   └── weather.py
+│   ├── server.py           # MCP server (CLI mode)
+│   ├── client.py           # CLI client
+│   ├── index.html          # Web UI
+│   └── requirements.txt
 │
-├── .env.example            # Environment variable template
+├── index.html              # Landing page
+├── vercel.json             # Vercel deployment config
+├── .env.example
 ├── .gitignore
-└── README.md               # This file
+└── README.md
 ```
 
-## Prerequisites
+## Features
+
+✅ **Dual Mode**: CLI and Web interfaces
+✅ **Production Ready**: Deployable to Vercel
+✅ **No Database Required**: Simple JSON storage
+✅ **Free Weather API**: No API key needed for weather
+✅ **Modern UI**: Clean, responsive design
+
+## Quick Start (Web Interface)
+
+### Option 1: Deploy to Vercel (Recommended)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/MCP-Experiments)
+
+1. Click the button above
+2. Connect your GitHub account
+3. Deploy automatically
+4. Access your live app!
+
+### Option 2: Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/MCP-Experiments.git
+cd MCP-Experiments
+
+# Open index.html in your browser
+# Or use a simple server:
+python -m http.server 8000
+# Visit http://localhost:8000
+```
+
+## CLI Mode Setup
+
+For running the CLI version with OpenAI integration:
+
+### Prerequisites
 
 - **Python 3.10+**
 - **OpenAI API Key** - Get one at https://platform.openai.com/api-keys
-- **Internet connection** - For API calls and weather data
 
-## Installation
+### Installation
 
 ### 1. Clone the Repository
 
@@ -138,42 +182,34 @@ pip install -r experiment-1-personal-assistant/requirements.txt
 pip install -r experiment-2-data-dashboard/requirements.txt
 ```
 
-## Running the Experiments
+## Usage
 
-### Experiment 1: Personal Assistant
+### Web Interface
 
+1. **Experiment 1 - Personal Assistant**
+   - Navigate to `/experiment-1-personal-assistant/`
+   - Add notes with tags
+   - Search your saved notes
+   - All data stored locally
+
+2. **Experiment 2 - Weather Dashboard**
+   - Navigate to `/experiment-2-data-dashboard/`
+   - Enter any city name
+   - View real-time weather data
+   - Beautiful visualizations
+
+### CLI Mode (requires OpenAI API key)
+
+**Experiment 1:**
 ```bash
 cd experiment-1-personal-assistant
 python client.py
 ```
 
-**Example interaction:**
-```
-You: Remember that I have a dentist appointment on October 10
-[Calling tool: save_note]
-Assistant: I've saved your dentist appointment for October 10.
-
-You: When is my dentist appointment?
-[Calling tool: search_notes]
-Assistant: Your dentist appointment is on October 10.
-```
-
-### Experiment 2: Weather Dashboard
-
+**Experiment 2:**
 ```bash
 cd experiment-2-data-dashboard
 python client.py
-```
-
-**Example interaction:**
-```
-You: What's the weather in Paris?
-[LLM] Determining required tool...
-[LLM] Calling MCP tool: get_current_weather
-[MCP] Fetching weather for Paris...
-[MCP] Tool result received.
-[LLM] Generating final response...
-Assistant: The current weather in Paris is 18°C and cloudy, with 65% humidity and winds around 15 km/h.
 ```
 
 ## How Each Experiment Works
@@ -227,26 +263,44 @@ Assistant: The current weather in Paris is 18°C and cloudy, with 65% humidity a
 | **Weather API (Exp 2)** | wttr.in | Free weather data (no auth required) |
 | **Async I/O** | Python asyncio | Non-blocking MCP communication |
 
-## Troubleshooting
+## Deployment to Vercel
 
-### "No module named 'mcp'"
+### Step 1: Push to GitHub
+
 ```bash
-pip install mcp
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/YOUR_USERNAME/MCP-Experiments.git
+git push -u origin master
 ```
 
-### "OpenAI API key not found"
-- Make sure `.env` file exists in project root
-- Verify the key starts with `sk-`
-- Check that `python-dotenv` is installed
+### Step 2: Deploy to Vercel
 
-### "Connection refused" or server errors
-- Ensure you're running `client.py` (not `server.py` directly)
-- The client automatically starts the server process
+1. Go to [vercel.com](https://vercel.com)
+2. Click "New Project"
+3. Import your GitHub repository
+4. Click "Deploy"
+5. Done! Your app is live
 
-### Weather API timeout
-- Check your internet connection
-- Try a different location name
-- wttr.in may be temporarily unavailable
+### Custom Domain (Optional)
+
+1. Go to your project settings in Vercel
+2. Navigate to "Domains"
+3. Add your custom domain
+4. Update DNS records as instructed
+
+## Troubleshooting
+
+### Web Interface Issues
+- **Notes not saving**: Check browser console for errors
+- **Weather not loading**: Verify internet connection
+- **API errors**: wttr.in may be temporarily unavailable
+
+### CLI Mode Issues
+- **"No module named 'mcp'"**: Run `pip install mcp openai python-dotenv`
+- **"OpenAI API key not found"**: Create `.env` file with your API key
+- **Server errors**: Ensure you're running `client.py`, not `server.py` directly
 
 ## What You Learned
 

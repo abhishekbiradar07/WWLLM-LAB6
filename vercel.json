@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "experiment-1-personal-assistant/api/*.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "experiment-2-data-dashboard/api/*.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/experiment-1/(.*)",
+      "dest": "experiment-1-personal-assistant/api/$1.py"
+    },
+    {
+      "src": "/api/experiment-2/(.*)",
+      "dest": "experiment-2-data-dashboard/api/$1.py"
+    }
+  ]
+}
